@@ -11,7 +11,13 @@ app.use(bodyParser.json());
 const db = new sqlite3.Database(':memory:');
 db.serialize(function () {
     db.run("CREATE TABLE user (username TEXT, password TEXT, title TEXT)");
-    db.run("INSERT INTO user VALUES ('privilegedUser', 'privilegedUser1', 'Administrator')");
+    db.run("INSERT INTO user VALUES ('admin', 'password123', 'Administrator')", function(err) {
+        if (err) {
+            console.log('Error inserting data:', err);
+        } else {
+            console.log('Database initialized with admin credentials.');
+        }
+    });
 });
 
 app.get('/', function (req, res) {
@@ -21,18 +27,22 @@ app.get('/', function (req, res) {
 app.post('/login', function (req, res) {
     var username = req.body.username;
     var password = req.body.password;
+
+    // Log received credentials for debugging
+    console.log('Received credentials:', { username, password });
+
     var query = `SELECT title FROM user WHERE username = '${username}' AND password = '${password}'`;
-    // console.log('query: ' + query);
+    console.log('Executing query:', query);
 
     db.get(query, function (err, row) {
         if (err) {
-            console.log('ERROR', err);
+            console.log('ERROR:', err);
             res.redirect("/index.html#error");
         } else if (!row) {
-            // Log invalid credentials
             console.log('Invalid credentials');
             res.redirect("/index.html#unauthorized");
         } else {
+            console.log('Successful login for username:', username, 'with title:', row.title);
             res.send('Hello <b>' + row.title + '!</b><br /> This file contains all your secret data: <br /><br /> SECRETS <br /><br /> MORE SECRETS <br /><br /> <a href="/index.html">Go back to login</a>');
         }
     });
