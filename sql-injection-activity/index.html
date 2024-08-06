@@ -16,12 +16,15 @@
             <button type="submit">Submit</button>
         </div>
         <script>
-            if(document.location.hash === '#unauthorized') {
-                document.write('<div class="unauthorized">Invalid Username or Password</div>');
-            } else if(document.location.hash === '#error') {
-                document.write('<div class="error">An error has occured</div>');
-            }
-          </script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.location.hash === '#unauthorized') {
+                    document.getElementById('message').innerHTML = '<div class="unauthorized">Invalid Username or Password</div>';
+                } else if (document.location.hash === '#error') {
+                    document.getElementById('message').innerHTML = '<div class="error">An error has occurred</div>';
+                }
+            });
+        </script>
+        
     </form>
 </body>
 </html>

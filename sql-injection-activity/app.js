@@ -31,6 +31,7 @@ app.post('/login', function (req, res) {
     // Log received credentials for debugging
     console.log('Received credentials:', { username, password });
 
+    // SQL injection vulnerability: directly inserting user input into the query
     var query = `SELECT title FROM user WHERE username = '${username}' AND password = '${password}'`;
     console.log('Executing query:', query);
 
@@ -47,6 +48,7 @@ app.post('/login', function (req, res) {
         }
     });
 });
+
 
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
