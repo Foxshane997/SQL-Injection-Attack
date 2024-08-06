@@ -4,48 +4,40 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const port = 3000;
+app.use(express.static('.'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-// Database setup
-let db = new sqlite3.Database(':memory:');
-db.serialize(() => {
-    db.run("CREATE TABLE user (username TEXT, password TEXT)");
-    let stmt = db.prepare("INSERT INTO user VALUES (?, ?)");
-    // Declared Username & Password here
-    stmt.run("admin", "password123");
-    stmt.finalize();
+const db = new sqlite3.Database(':memory:');
+db.serialize(function () {
+    db.run("CREATE TABLE user (username TEXT, password TEXT, title TEXT)");
+    db.run("INSERT INTO user VALUES ('privilegedUser', 'privilegedUser1', 'Administrator')");
 });
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
-
-// Serve HTML file
-app.get('/', (req, res) => {
+app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle login form submission
-app.post('/login', (req, res) => {
-    let username = req.body.username;
-    let password = req.body.password;
+app.post('/login', function (req, res) {
+    var username = req.body.username;
+    var password = req.body.password;
+    var query = `SELECT title FROM user WHERE username = '${username}' AND password = '${password}'`;
+    // console.log('query: ' + query);
 
-    let query = `SELECT username FROM user WHERE username = '${username}' AND password = '${password}'`;
-    console.log(`Username: ${username}`);
-    console.log(`Password: ${password}`);
-    console.log(`SQL Query: ${query}`);
-
-    db.get(query, (err, row) => {
+    db.get(query, function (err, row) {
         if (err) {
-            console.error(err);
-            res.send("Error occurred.");
-        } else if (row) {
-            res.send("Login successful!");
+            console.log('ERROR', err);
+            res.redirect("/index.html#error");
+        } else if (!row) {
+            // Log invalid credentials
+            console.log('Invalid credentials');
+            res.redirect("/index.html#unauthorized");
         } else {
-            res.send("Invalid login.");
+            res.send('Hello <b>' + row.title + '!</b><br /> This file contains all your secret data: <br /><br /> SECRETS <br /><br /> MORE SECRETS <br /><br /> <a href="/index.html">Go back to login</a>');
         }
     });
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
+app.listen(3000, () => {
+    console.log('Server running on http://localhost:3000');
 });
